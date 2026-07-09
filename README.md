@@ -1,155 +1,233 @@
-# FitNova AI Sales-Call Intelligence System
+# FitNova AI Sales Call Intelligence
 
-> **AI Engineer Intern Take-Home Assignment — FitNova Bangalore**
+## Overview
 
-An end-to-end AI-powered Sales-Call Intelligence System that automatically ingests call recordings, transcribes audio, performs speaker diarization, redacts PII, scores advisor quality, detects compliance issues, and surfaces everything via role-aware dashboards for the Sales Director, Team Leaders, and individual Advisors.
+FitNova AI Sales Call Intelligence is an end-to-end AI-powered application that analyzes customer sales calls and provides actionable insights for sales managers.
+
+The system accepts an uploaded call recording, generates a transcript using Groq Whisper, assigns speaker labels, redacts sensitive information, evaluates the conversation using an AI workflow, stores the results in a database, and displays the analysis through an interactive dashboard.
 
 ---
 
-## 🚀 Quick Start (Single Command)
+## Features
 
-**Windows** — double-click or run in PowerShell:
-```bat
-start.bat
+* Upload customer call recordings
+* Automatic speech-to-text transcription using Groq Whisper
+* Advisor/Customer speaker identification
+* Automatic PII redaction (phone numbers, email addresses, card numbers, UPI IDs, etc.)
+* AI-powered call analysis
+* Sales quality scoring
+* Compliance issue detection
+* AI-generated call summary
+* Recommendations for advisor improvement
+* Interactive analytics dashboard
+
+---
+
+## Tech Stack
+
+### Frontend
+
+* React 18
+* TypeScript
+* Vite
+* Tailwind CSS
+* Axios
+* Recharts
+* React Router
+
+### Backend
+
+* FastAPI
+* SQLAlchemy
+* SQLite
+* Pydantic
+* Python
+
+### AI Services
+
+* Groq Whisper Large v3 (Speech Transcription)
+* LangGraph-based analysis workflow
+* Rule-based speaker diarization
+* Regex-based PII redaction
+
+---
+
+## Project Structure
+
+```text
+fitnova-intelligence/
+
+├── backend/
+│   ├── app/
+│   │   ├── agents/
+│   │   ├── api/
+│   │   ├── core/
+│   │   ├── database/
+│   │   ├── schemas/
+│   │   └── services/
+│   ├── requirements.txt
+│   └── seed.py
+│
+├── frontend/
+│   ├── src/
+│   ├── public/
+│   ├── package.json
+│   └── vite.config.ts
+│
+└── README.md
 ```
-This will: install all dependencies, seed the database with 3 sample processed calls, start the FastAPI backend (`port 8000`) and the Vite React frontend (`port 3000`), and open the browser automatically.
 
-**Manual start** (if you prefer separate terminals):
+---
+
+## Processing Pipeline
+
+1. Upload an audio file
+2. Generate transcription using Groq Whisper
+3. Assign Advisor/Customer speaker labels
+4. Redact personally identifiable information (PII)
+5. Analyze the conversation using the AI workflow
+6. Generate quality scores
+7. Detect compliance issues
+8. Produce a summary and recommendations
+9. Store all results in the database
+10. Display results in the dashboard
+
+---
+
+## Installation
+
+### Backend
+
+Navigate to the backend directory:
+
 ```bash
-# Terminal 1 – Backend
 cd backend
-python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
 
-# Terminal 2 – Frontend
+Create a virtual environment:
+
+```bash
+python -m venv venv
+```
+
+Activate the environment.
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Create a `.env` file:
+
+```env
+GROQ_API_KEY=your_groq_api_key
+DATABASE_URL=sqlite:///fitnova.db
+UPLOAD_DIR=uploads
+```
+
+Initialize the database:
+
+```bash
+python seed.py
+```
+
+Run the backend:
+
+```bash
+uvicorn app.main:app --reload
+```
+
+---
+
+### Frontend
+
+Navigate to the frontend directory:
+
+```bash
 cd frontend
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run the development server:
+
+```bash
 npm run dev
 ```
-Open **http://localhost:3000**
 
 ---
 
-## 🏗️ Architecture
+## Deployment
 
-See the full pipeline diagram and written walkthrough: [`docs/architecture.md`](docs/architecture.md)
+**Frontend**
 
-```
-[Ingestion] → [Transcription + Diarization] → [PII Redaction]
-    → [Analysis Engine (Score + Issue + Summary Agents)]
-        → [SQLite Storage]
-            → [React Dashboards]
-                → [Advisor Appeals → TL Review → Resolve]
-```
+Hosted on Vercel.
 
-**Source-agnostic ingestion**: `FolderConnector`, `TwilioConnector`, `CRMConnector`, and `UploadConnector` all implement `AbstractConnector` — adding a new telephony vendor requires only one new class, zero changes to the pipeline.
+**Backend**
+
+Hosted on Render.
 
 ---
 
-## 📦 Components
+## Implemented Components
 
-| Layer | Tech | Purpose |
-|---|---|---|
-| Backend API | FastAPI + SQLAlchemy | Upload, analysis, scoring, appeals, analytics |
-| Database | SQLite (→ PostgreSQL via env var) | Orgs, Teams, Advisors, Calls, Scores, Issues, Appeals, Logs |
-| Analysis Engine | LLM (OpenAI) + heuristic fallback | 7-dimension scoring, 8 issue types, hallucination guard |
-| Transcription | Faster-Whisper + mock fallback | Audio → labeled transcript segments |
-| Diarization | pyannote.audio + mock fallback | Advisor vs Customer speaker separation |
-| PII Redaction | Regex (phone, email, UPI, card, address) | Redacted text stored alongside raw |
-| Frontend | React + Vite + TailwindCSS + Recharts | Director / TL / Advisor dashboards |
-
----
-
-## 🔑 What Is Real vs. Mocked
-
-| Feature | Real | Mocked / Fallback |
-|---|---|---|
-| FastAPI REST API | ✅ | — |
-| SQLite relational storage | ✅ | — |
-| PII Redaction | ✅ | — |
-| LLM scoring (OpenAI GPT) | ✅ with `OPENAI_API_KEY` | Heuristic rules (deterministic) |
-| Hallucination guard (quote verification) | ✅ | ✅ same logic |
-| Whisper transcription | ✅ with `faster-whisper` installed | Realistic scenario transcripts |
-| Speaker diarization | ✅ with `pyannote.audio` + `HF_TOKEN` | Mock speaker labels |
-| Appeals workflow | ✅ | — |
-| React dashboards | ✅ | — |
-
-**The system is fully testable without any API keys.** The mock pipeline produces three distinct scenarios: a model discovery call (Amit), a high-pressure non-compliant call (Rohan), and a wrong-number call (Priya) — all with realistic transcripts, scores, and issue flags.
+* Audio upload
+* Speech transcription
+* Speaker diarization
+* PII redaction
+* AI analysis workflow
+* Call scoring
+* Compliance issue detection
+* Call summary generation
+* Recommendations
+* SQLite database storage
+* Dashboard visualization
 
 ---
 
-## 🌍 Environment Variables
+## Current Limitations
 
-Create `backend/.env`:
-```env
-# Optional — if not set, mock pipeline is used
-OPENAI_API_KEY=your_openai_key_here
-HF_TOKEN=your_huggingface_token_here
-
-# Optional — defaults to sqlite in backend dir
-DATABASE_URL=sqlite:///./fitnova.db
-
-# Optional
-UPLOAD_DIR=./data/uploads
-```
+* Speaker diarization uses a lightweight heuristic approach rather than a dedicated deep-learning diarization model.
+* The quality of transcription depends on the uploaded audio.
+* Analysis accuracy is influenced by transcription quality.
 
 ---
 
-## 📊 API Endpoints
+## Future Improvements
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| GET | `/health` | System health |
-| POST | `/api/v1/upload` | Upload a new call recording |
-| GET | `/api/v1/calls` | List calls (filters: team, advisor, status, score) |
-| GET | `/api/v1/calls/{id}` | Call detail (transcript, scores, issues) |
-| GET | `/api/v1/org/structure` | Org → Teams → Advisors |
-| GET | `/api/v1/org/analytics` | Score averages, team rankings, issue breakdown |
-| POST | `/api/v1/appeals` | Advisor submits appeal on an issue |
-| GET | `/api/v1/appeals` | List all appeals |
-| PUT | `/api/v1/appeals/{id}` | TL approves/rejects appeal |
+* Deep-learning-based speaker diarization
+* Real-time call processing
+* Sentiment analysis
+* CRM integration
+* Multi-language support
+* Advanced analytics dashboard
+* Authentication and role-based access control
 
 ---
 
-## 🧪 Edge Cases Handled
+## Environment Variables
 
-- **Mono / poor diarization** → mock fallback, no crash
-- **Hindi-English code-switching** → Whisper multilingual; mock transcripts include Hindi phrases
-- **Non-sales call (wrong number)** → detected and scored appropriately (all sales dimensions → 0)
-- **PII** → redacted before storage; both raw and redacted versions preserved
-- **Hallucinated issue flags** → quote must exist verbatim in transcript or flag is rejected
-- **LLM API failure** → immediate fallback to heuristic analysis
-- **Vendor switch** → add one new `AbstractConnector` subclass
+| Variable       | Description                        |
+| -------------- | ---------------------------------- |
+| `GROQ_API_KEY` | Groq API key for transcription     |
+| `DATABASE_URL` | SQLite database connection         |
+| `UPLOAD_DIR`   | Directory for uploaded audio files |
 
 ---
 
-## 📁 Project Structure
+## Author
 
-```
-fitnova-intelligence/
-├── start.bat                    ← Single-command startup
-├── README.md
-├── docs/
-│   ├── architecture.md          ← Full pipeline diagram + walkthrough
-│   └── video_script.md          ← 2-minute video walkthrough script
-├── backend/
-│   ├── seed.py                  ← DB seeder (3 sample calls)
-│   ├── requirements.txt
-│   └── app/
-│       ├── main.py
-│       ├── agents/              ← LLM analysis (score, issues, summary, hallucination guard)
-│       ├── api/routes/          ← calls, upload, appeals, org
-│       ├── core/                ← config, logging
-│       ├── database/            ← models (9 tables), session
-│       ├── ingestion/           ← AbstractConnector + Folder/Twilio/CRM connectors
-│       ├── schemas/             ← Pydantic v2 request/response models
-│       └── services/            ← transcription, diarization, PII redaction
-└── frontend/
-    └── src/
-        └── pages/               ← SalesDirector, TeamLeader, Advisor, CallDetail, Analytics, Appeals
-```
+**Gowtham K**
+
+GitHub: https://github.com/kgowtham590-spec
 
 ---
 
-## 🎥 Video Walkthrough
+## License
 
-See `docs/video_script.md` for the 2-minute walkthrough script.
-Record and upload to an accessible link (YouTube unlisted / Loom) before submission.
+This project was developed as part of an AI Engineering internship assignment for evaluation and educational purposes.
