@@ -306,7 +306,3 @@ GitHub:
 https://github.com/kgowtham590-spec
 
 ---
-
-# License
-
-This project was developed as part of an AI Engineering internship assignment for evaluation and educational purposes.
