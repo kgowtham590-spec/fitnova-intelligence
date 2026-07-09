@@ -2,32 +2,58 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+from app.core.config import settings
+
 class TranscriptionService:
     def __init__(self):
-        try:
-            from faster_whisper import WhisperModel
-            self.model = WhisperModel("tiny", device="cpu", compute_type="int8")
-            self.has_model = True
-            logger.info("Faster Whisper Model initialized successfully.")
-        except Exception as e:
-            logger.warning(f"Could not load Faster Whisper (reason: {e}). Using Mock Transcriber.")
-            self.has_model = False
+        self.api_key = settings.GROQ_API_KEY
+        if self.api_key:
+            try:
+                from groq import Groq
+                self.client = Groq(api_key=self.api_key)
+                self.has_api = True
+                logger.info("Groq Cloud Whisper transcription client initialized successfully.")
+            except Exception as e:
+                logger.error(f"Failed to initialize Groq API client: {e}")
+                self.has_api = False
+        else:
+            self.has_api = False
+            logger.warning("No Groq API key found. Transcription will fallback to mocks.")
 
     def transcribe(self, audio_path: str) -> list:
-        if self.has_model:
+        if self.has_api:
             try:
-                segments, info = self.model.transcribe(audio_path, beam_size=1)
+                logger.info(f"Sending audio file {audio_path} to Groq Whisper API for real transcription...")
+                with open(audio_path, "rb") as file:
+                    transcription = self.client.audio.transcriptions.create(
+                        file=(audio_path, file.read()),
+                        model="whisper-large-v3",
+                        response_format="verbose_json"
+                    )
+                
+                segments = []
+                if hasattr(transcription, "segments"):
+                    segments = transcription.segments
+                elif isinstance(transcription, dict) and "segments" in transcription:
+                    segments = transcription["segments"]
+
                 results = []
                 for s in segments:
+                    start = s.get("start", 0.0) if isinstance(s, dict) else getattr(s, "start", 0.0)
+                    end = s.get("end", 0.0) if isinstance(s, dict) else getattr(s, "end", 0.0)
+                    text = s.get("text", "") if isinstance(s, dict) else getattr(s, "text", "")
                     results.append({
-                        "start": s.start,
-                        "end": s.end,
-                        "text": s.text.strip(),
+                        "start": start,
+                        "end": end,
+                        "text": text.strip(),
                         "speaker": "Speaker"
                     })
-                return results
+                
+                if results:
+                    logger.info(f"Successfully transcribed {len(results)} segments via Groq Whisper API.")
+                    return results
             except Exception as e:
-                logger.error(f"Whisper transcription failed: {e}. Falling back to mock.")
+                logger.error(f"Groq Whisper transcription failed: {e}. Falling back to mock transcriber.")
         
         return self._get_mock_transcript(audio_path)
 
