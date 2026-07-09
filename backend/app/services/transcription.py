@@ -46,7 +46,6 @@ class TranscriptionService:
                         "start": start,
                         "end": end,
                         "text": text.strip(),
-                        "speaker": "Speaker"
                     })
                 
                 if results:
