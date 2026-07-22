@@ -4,7 +4,7 @@ An end-to-end AI platform that turns raw customer sales-call recordings into str
 
 **Live demo:** [fitnova-intelligence-nine.vercel.app](https://fitnova-intelligence-nine.vercel.app/) · [Director Dashboard](https://fitnova-intelligence-nine.vercel.app/director)
 
-![FitNova Dashboard](docs/screenshots/dashboard.png)
+![FitNova Dashboard](docs/screenshots/dashboard.gif)
 
 ---
 
