@@ -69,8 +69,6 @@ The core of FitNova is a **LangGraph workflow** that takes the redacted, speaker
 
 Each node produces a structured score plus supporting rationale, which the graph then aggregates into an overall quality score, a set of compliance flags, and an LLM-generated executive summary with actionable recommendations.
 
-*(Fill in: are these nodes sequential or parallel in your graph? Do you pass the full transcript to each node or a filtered segment? A sentence or two here — and ideally a small graph-diagram screenshot from LangGraph's visualizer — will make this section much stronger for reviewers.)*
-
 ---
 
 ## Features
